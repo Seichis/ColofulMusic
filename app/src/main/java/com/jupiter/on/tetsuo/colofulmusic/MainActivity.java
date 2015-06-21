@@ -1,20 +1,12 @@
 package com.jupiter.on.tetsuo.colofulmusic;
 
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.TransitionDrawable;
-import android.os.Build;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.util.TypedValue;
 import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.widget.Switch;
 
 import com.astuetz.PagerSlidingTabStrip;
 
@@ -22,40 +14,24 @@ import fragment.adapter.FragmentAdapter;
 
 public class MainActivity extends FragmentActivity {
 
-    private final Handler handler = new Handler();
-
     private PagerSlidingTabStrip tabs;
     private ViewPager pager;
     private FragmentAdapter adapter;
+    private boolean isServiceRunning;
+    private static MainActivity mainActivity;
 
-    private Drawable oldBackground = null;
-    private int currentColor = 0xFF343566;
-    private Drawable.Callback drawableCallback = new Drawable.Callback() {
-        @Override
-        public void invalidateDrawable(Drawable who) {
-            getActionBar().setBackgroundDrawable(who);
-        }
-
-        @Override
-        public void scheduleDrawable(Drawable who, Runnable what, long when) {
-            handler.postAtTime(what, when);
-        }
-
-        @Override
-        public void unscheduleDrawable(Drawable who, Runnable what) {
-            handler.removeCallbacks(what);
-        }
-    };
-
+    public static MainActivity getMainActivity() {
+        return mainActivity;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mainActivity=this;
         tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         pager = (ViewPager) findViewById(R.id.pager);
         adapter = new FragmentAdapter(getSupportFragmentManager());
-
+        isServiceRunning=false;
         pager.setAdapter(adapter);
 
         final int pageMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources()
@@ -63,24 +39,9 @@ public class MainActivity extends FragmentActivity {
         pager.setPageMargin(pageMargin);
 
         tabs.setViewPager(pager);
-
         //changeColor(currentColor);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-
-            case R.id.action_contact:
-                QuickContactFragment dialog = new QuickContactFragment();
-                dialog.show(getSupportFragmentManager(), "QuickContactFragment");
-                return true;
-
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -88,72 +49,30 @@ public class MainActivity extends FragmentActivity {
         return true;
     }
 
-    private void changeColor(int newColor) {
-
-        tabs.setIndicatorColor(newColor);
-
-        // change ActionBar color just if an ActionBar is available
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-
-            Drawable colorDrawable = new ColorDrawable(newColor);
-            Drawable bottomDrawable = ContextCompat.getDrawable(this, R.drawable.actionbar_bottom);
-            LayerDrawable ld = new LayerDrawable(new Drawable[]{colorDrawable, bottomDrawable});
-
-            if (oldBackground == null) {
-//
-//                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    ld.setCallback(drawableCallback);
-//                } else {
-//                    getActionBar().setLogo(ld);
-//                }
-//
-            } else {
-
-                TransitionDrawable td = new TransitionDrawable(new Drawable[]{oldBackground, ld});
-
-                // workaround for broken ActionBarContainer drawable handling on
-                // pre-API 17 builds
-                // https://github.com/android/platform_frameworks_base/commit/a7cc06d82e45918c37429a59b14545c6a57db4e4
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    td.setCallback(drawableCallback);
-                } else {
-                    getActionBar().setBackgroundDrawable(td);
-                }
-
-                td.startTransition(200);
-
-            }
-
-            oldBackground = ld;
-
-            // http://stackoverflow.com/questions/11002691/actionbar-setbackgrounddrawable-nulling-background-from-thread-handler
-            getActionBar().setDisplayShowTitleEnabled(false);
-            getActionBar().setDisplayShowTitleEnabled(true);
-
-        }
-
-        currentColor = newColor;
-
-    }
-
-    public void onColorClicked(View v) {
-
-        int color = 0xFF652666;
-        changeColor(color);
-
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt("currentColor", currentColor);
+
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        currentColor = savedInstanceState.getInt("currentColor");
-        changeColor(currentColor);
+
     }
 
+    public void startAudioClassificationService(){
+        startService(new Intent(getMainActivity(), AudioClassificationService.class));
+    }
+    public void stopAudioClassificationService(){
+        stopService(new Intent(getMainActivity(), AudioClassificationService.class));
+    }
+    public boolean isServiceRunning() {
+        return isServiceRunning;
+    }
+
+    public void setIsServiceRunning(boolean isServiceRunning) {
+        this.isServiceRunning = isServiceRunning;
+    }
 }
