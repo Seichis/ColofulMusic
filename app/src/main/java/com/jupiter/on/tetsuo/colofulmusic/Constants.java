@@ -8,8 +8,8 @@ public class Constants {
 
 
     public final static int DURATION_THREAD_SLEEP = 250; // ms (Should be smaller than step_size, otherwise bottle neck occurs)
-    public final static int WINDOW_SIZE = 5000; // ms
-    public final static int STEP_SIZE = 2500; // ms
+    public final static int WINDOW_SIZE = 10000; // ms
+    public final static int STEP_SIZE = 5000; // ms
 
     // File name prefix
     public final static String PREFIX_RAW_DATA = "1_raw_data_";

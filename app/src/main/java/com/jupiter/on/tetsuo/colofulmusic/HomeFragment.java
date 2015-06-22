@@ -20,6 +20,12 @@ public class HomeFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
         mSwitch = (Switch) rootView.findViewById(R.id.switch1);
         switchStatus = (TextView) rootView.findViewById(R.id.switchStatus);
+
+        if(AudioClassificationService.isOn){
+            mSwitch.setChecked(true);
+        }else {
+            mSwitch.setChecked(false);
+        }
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
             @Override

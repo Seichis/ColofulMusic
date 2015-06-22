@@ -1,7 +1,9 @@
 package com.jupiter.on.tetsuo.colofulmusic;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -12,8 +14,14 @@ import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstanceList;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.FeatureGenerator;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.SlidingWindow;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -34,6 +42,7 @@ public class AudioClassificationService extends Service {
     final static String file1 = "test1.txt";
     final static String file2 = "test2.txt";
     final static String file3 = "test3.txt";
+    public static boolean isOn;
     static int fileNumber = 1;
     int sampleRate = 44100;
     int bufferSize = 2048;
@@ -52,7 +61,6 @@ public class AudioClassificationService extends Service {
     private SlidingWindow slidingWindow; // For extracting samples by window
     private MainRunnable mainRunnable; // Stores calculated feature to ARFF file, and optionally classifies instances
 
-
     //    public AudioClassificationService() {
 //    }
     @Override
@@ -61,6 +69,7 @@ public class AudioClassificationService extends Service {
         isCollecting = false;
         changeSaveFile = false;
         mJ48Wrapper = new J48Wrapper();
+        isOn = true;
         startDataCollection();
     }
 
@@ -80,6 +89,7 @@ public class AudioClassificationService extends Service {
     @Override
     public void onDestroy() {
         finishDataCollection();
+        isOn = false;
     }
 
     public void startDataCollection() {
@@ -103,16 +113,76 @@ public class AudioClassificationService extends Service {
 
     }
 
+    public void changeColorToMusic(int musicGenre) {
+
+        // get the pin number
+        String parameterValue = String.valueOf(musicGenre);
+        // get the ip address
+        String ipAddress = "192.168.0.104";
+        // get the port number
+        String portNumber = "80";
+
+
+        // execute HTTP request
+        if (ipAddress.length() > 0 && portNumber.length() > 0) {
+            new HttpRequestAsyncTask(
+                    MainActivity.getMainActivity(), parameterValue, ipAddress, portNumber, "genre"
+            ).execute();
+        }
+    }
+
+    /**
+     * Description: Send an HTTP Get request to a specified ip address and port.
+     * Also send a parameter "parameterName" with the value of "parameterValue".
+     *
+     * @param parameterValue the pin number to toggle
+     * @param ipAddress      the ip address to send the request to
+     * @param portNumber     the port number of the ip address
+     * @param parameterName
+     * @return The ip address' reply text, or an ERROR message is it fails to receive one
+     */
+    public String sendRequest(String parameterValue, String ipAddress, String portNumber, String parameterName) {
+        String serverResponse = "ERROR";
+
+        try {
+            // create an HTTP client
+            // define the URL e.g. http://myIpaddress:myport/?pin=13 (to toggle pin 13 for example)
+            URL website = new URL("http://" + ipAddress + ":" + portNumber + "/?" + parameterName + "=" + parameterValue);
+            HttpURLConnection conn = (HttpURLConnection) website.openConnection();
+            conn.setRequestMethod("GET");
+
+            System.out.println("Response Code: " + conn.getResponseCode());
+            InputStream content = new BufferedInputStream(conn.getInputStream());
+
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    content
+            ));
+            serverResponse = in.readLine();
+            // Close the connection
+            content.close();
+        } catch (IOException e) {
+            // IO error
+            serverResponse = e.getMessage();
+            e.printStackTrace();
+        }
+        // return the server's reply/response text
+        return serverResponse;
+    }
 
     public class MainRunnable extends TimerTask {
 
         private final static String TAG = "TimerThread";
-
+        String prediction, previousPrediction;
+        float tempPrediction;
         // Data collection (Always)
         private Instances instancesForDataCollection;
 
         public MainRunnable() {
             initializeSignalProcessing();
+            this.prediction = "";
+            this.previousPrediction="";
+            this.tempPrediction = 0;
         }
 
 
@@ -123,14 +193,15 @@ public class AudioClassificationService extends Service {
                 public void run() {
                     if (isCollecting) {
                         currentTimestamp = System.currentTimeMillis();
-                        if (currentTimestamp - startCollectingTimestamp >= 20000) {
+                        if (currentTimestamp - startCollectingTimestamp >= 10000) {
                             if (fileNumber == 2) {
                                 mainRunnable.saveInstancesToArff(mainRunnable.getInstances(), file3);
                                 Instances mInstances = mJ48Wrapper.loadInstancesFromArffFile(file3);
 
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
-                                    String prediction = mJ48Wrapper.predict(mInstances.instance(i));
-                                    Log.e(TAG, "Prediction " + prediction);
+                                    prediction = mJ48Wrapper.predict(mInstances.instance(i));
+                                    tempPrediction = Float.parseFloat(prediction);
+                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
                                 }
 
                                 fileNumber = 3;
@@ -139,8 +210,9 @@ public class AudioClassificationService extends Service {
                                 Instances mInstances = mJ48Wrapper.loadInstancesFromArffFile(file2);
 
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
-                                    String prediction = mJ48Wrapper.predict(mInstances.instance(i));
-                                    Log.e(TAG, "Prediction " + prediction);
+                                    prediction = mJ48Wrapper.predict(mInstances.instance(i));
+                                    tempPrediction = Float.parseFloat(prediction);
+                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
 
                                 }
                                 fileNumber = 2;
@@ -149,8 +221,9 @@ public class AudioClassificationService extends Service {
                                 Instances mInstances = mJ48Wrapper.loadInstancesFromArffFile(file1);
 
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
-                                    String prediction = mJ48Wrapper.predict(mInstances.instance(i));
-                                    Log.e(TAG, "Prediction " + prediction);
+                                    prediction = mJ48Wrapper.predict(mInstances.instance(i));
+                                    tempPrediction = Float.parseFloat(prediction);
+                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
 
                                 }
                                 fileNumber = 1;
@@ -158,6 +231,11 @@ public class AudioClassificationService extends Service {
 
                             instancesForDataCollection = null;
                             startCollectingTimestamp = System.currentTimeMillis();
+                            if (!prediction.isEmpty()) {
+                                if (!previousPrediction.equals(prediction))
+                                    changeColorToMusic((int) tempPrediction);
+                                previousPrediction = prediction;
+                            }
                         }
                         // Reusable buffer
                         DataInstanceList dlAudio;
@@ -210,8 +288,8 @@ public class AudioClassificationService extends Service {
             mfcc = new MFCC(bufferSize, sampleRate, 12, 30, 133.3334F, (float) sampleRate / 2);
             dispatcher.addAudioProcessor(mfcc);
             dispatcher.addAudioProcessor(new AudioProcessor() {
-                long startStamp = System.currentTimeMillis();
-                long currentStamp;
+//                long startStamp = System.currentTimeMillis();
+//                long currentStamp;
 
                 @Override
                 public void processingFinished() {
@@ -220,17 +298,17 @@ public class AudioClassificationService extends Service {
 
                 @Override
                 public boolean process(AudioEvent audioEvent) {
-                    currentStamp = System.currentTimeMillis();
-                    if (audioEvent.isSilence(-85) && currentStamp - startStamp > 10000) {
-                        finishDataCollection();
-                        isCollecting = false;
-                        MainActivity.getMainActivity().setIsServiceRunning(false);
-                    } else {
-                        mfcc.process(audioEvent);
-                        Log.i("mfcc", "coefficients" + mfcc.getMFCC()[0] + "center frequencies  ");
-                        DataInstance diAudio = new DataInstance(System.currentTimeMillis(), mfcc.getMFCC());
-                        slidingWindow.input(diAudio);
-                    }
+                    //currentStamp = System.currentTimeMillis();
+//                    if (audioEvent.isSilence(-85) && currentStamp - startStamp > 10000) {
+//                        finishDataCollection();
+//                        isCollecting = false;
+//                        MainActivity.getMainActivity().setIsServiceRunning(false);
+//                    } else {
+                    mfcc.process(audioEvent);
+                    Log.i("mfcc", "coefficients" + mfcc.getMFCC()[0] + "center frequencies  ");
+                    DataInstance diAudio = new DataInstance(System.currentTimeMillis(), mfcc.getMFCC());
+                    slidingWindow.input(diAudio);
+//                    }
 
                     return true;
                 }
@@ -269,7 +347,71 @@ public class AudioClassificationService extends Service {
                 Log.e(TAG, "saveInstancesToArff() error : " + e.getMessage());
             }
         }
+    }
 
+    /**
+     * An AsyncTask is needed to execute HTTP requests in the background so that they do not
+     * block the user interface.
+     */
+    private class HttpRequestAsyncTask extends AsyncTask<Void, Void, Void> {
+
+        // declare variables needed
+        private String requestReply, ipAddress, portNumber;
+        private Context context;
+        //private AlertDialog alertDialog;
+        private String parameter;
+        private String parameterValue;
+
+        /**
+         * Description: The asyncTask class constructor. Assigns the values used in its other methods.
+         *
+         * @param context        the application context, needed to create the dialog
+         * @param parameterValue the pin number to toggle
+         * @param ipAddress      the ip address to send the request to
+         * @param portNumber     the port number of the ip address
+         */
+        public HttpRequestAsyncTask(Context context, String parameterValue, String ipAddress, String portNumber, String parameter) {
+            this.context = context;
+            this.ipAddress = ipAddress;
+            this.parameterValue = parameterValue;
+            this.portNumber = portNumber;
+            this.parameter = parameter;
+        }
+
+        /**
+         * Name: doInBackground
+         * Description: Sends the request to the ip address
+         *
+         * @param voids
+         * @return
+         */
+        @Override
+        protected Void doInBackground(Void... voids) {
+            requestReply = sendRequest(parameterValue, ipAddress, portNumber, parameter);
+            return null;
+        }
+
+        /**
+         * Name: onPostExecute
+         * Description: This function is executed after the HTTP request returns from the ip address.
+         * The function sets the dialog's message with the reply text from the server and display the dialog
+         * if it's not displayed already (in case it was closed by accident);
+         *
+         * @param aVoid void parameter
+         */
+        @Override
+        protected void onPostExecute(Void aVoid) {
+        }
+
+        /**
+         * Name: onPreExecute
+         * Description: This function is executed before the HTTP request is sent to ip address.
+         * The function will set the dialog's message and display the dialog.
+         */
+        @Override
+        protected void onPreExecute() {
+
+        }
 
     }
 }
