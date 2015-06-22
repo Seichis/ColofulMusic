@@ -1,19 +1,22 @@
 package com.jupiter.on.tetsuo.colofulmusic;
 
-import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstance;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstanceList;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.FeatureGenerator;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.SlidingWindow;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -26,19 +29,12 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class AudioClassificationService extends Service {
     final static String TAG = "MainActivity";
     final static String file1 = "test1.txt";
     final static String file2 = "test2.txt";
     final static String file3 = "test3.txt";
     static int fileNumber = 1;
-    int countSilence;
     int sampleRate = 44100;
     int bufferSize = 2048;
     Timer mTimer;
@@ -57,13 +53,12 @@ public class AudioClassificationService extends Service {
     private MainRunnable mainRunnable; // Stores calculated feature to ARFF file, and optionally classifies instances
 
 
-//    public AudioClassificationService() {
+    //    public AudioClassificationService() {
 //    }
     @Override
     public void onCreate() {
         super.onCreate();
         isCollecting = false;
-        countSilence = 0;
         changeSaveFile = false;
         mJ48Wrapper = new J48Wrapper();
         startDataCollection();
@@ -75,15 +70,18 @@ public class AudioClassificationService extends Service {
 
         return START_STICKY;
     }
+
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
     @Override
     public void onDestroy() {
         finishDataCollection();
     }
+
     public void startDataCollection() {
         startCollectingTimestamp = System.currentTimeMillis();
         mTimer = new Timer();
@@ -104,7 +102,6 @@ public class AudioClassificationService extends Service {
         thread = null;
 
     }
-
 
 
     public class MainRunnable extends TimerTask {
@@ -213,7 +210,7 @@ public class AudioClassificationService extends Service {
             mfcc = new MFCC(bufferSize, sampleRate, 12, 30, 133.3334F, (float) sampleRate / 2);
             dispatcher.addAudioProcessor(mfcc);
             dispatcher.addAudioProcessor(new AudioProcessor() {
-                long startStamp=System.currentTimeMillis();
+                long startStamp = System.currentTimeMillis();
                 long currentStamp;
 
                 @Override
@@ -224,10 +221,10 @@ public class AudioClassificationService extends Service {
                 @Override
                 public boolean process(AudioEvent audioEvent) {
                     currentStamp = System.currentTimeMillis();
-                    if (audioEvent.isSilence(-70) && currentStamp-startStamp>10000 ) {
+                    if (audioEvent.isSilence(-85) && currentStamp - startStamp > 10000) {
                         finishDataCollection();
                         isCollecting = false;
-                        Log.i(TAG, "counter" + countSilence);
+                        MainActivity.getMainActivity().setIsServiceRunning(false);
                     } else {
                         mfcc.process(audioEvent);
                         Log.i("mfcc", "coefficients" + mfcc.getMFCC()[0] + "center frequencies  ");
