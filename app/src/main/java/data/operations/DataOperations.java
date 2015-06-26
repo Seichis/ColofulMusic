@@ -93,84 +93,84 @@ public class DataOperations {
      * @return JSON
      * Converts a Genre object to a JSON string
      */
-    public <T extends Genre> String taskToJSON(T EX) {
+    public <T extends Genre> String genreToJSON(T EX) {
         Gson gson = new GsonBuilder().create();
         String JSONtemp = (gson.toJson(EX));
         return JSONtemp;
     }
 
-    public List<Genre> getTaskListFromJSON(String taskType) {
+    public List<Genre> getGenreListFromJSON(String genreType) {
         List<String> mTaskStringList = readFromMusicGenreFile();
         Gson gson = new GsonBuilder().create();
-        List<Genre> mTaskList = new ArrayList<>();
-        switch (taskType) {
+        List<Genre> mGenreList = new ArrayList<>();
+        switch (genreType) {
             case StaticMusicType.rock:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType)) {
-                        mTaskList.add(gson.fromJson(tp, Rock.class));
-                        Log.i("LIST", mTaskList.get(0).toString());
+                    if (tp.contains(genreType)) {
+                        mGenreList.add(gson.fromJson(tp, Rock.class));
+                        Log.i("LIST", mGenreList.get(0).toString());
                     }
                 }
                 break;
             case StaticMusicType.punk:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Punk.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Punk.class));
 
                 }
                 break;
             case StaticMusicType.folk:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Folk.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Folk.class));
                 }
                 break;
             case StaticMusicType.dance:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Dance.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Dance.class));
                 }
                 break;
             case StaticMusicType.hipHop:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, HipHop.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, HipHop.class));
                 }
                 break;
             case StaticMusicType.pop:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Pop.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Pop.class));
                 }
                 break;
             case StaticMusicType.reggae:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, SoulReggae.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, SoulReggae.class));
                 }
                 break;
             case StaticMusicType.metal:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Metal.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Metal.class));
                 }
                 break;
             case StaticMusicType.classical:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Classical.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Classical.class));
                 }
                 break;
             case StaticMusicType.jazz:
                 for (String tp : mTaskStringList) {
-                    if (tp.contains(taskType))
-                        mTaskList.add(gson.fromJson(tp, Jazz.class));
+                    if (tp.contains(genreType))
+                        mGenreList.add(gson.fromJson(tp, Jazz.class));
                 }
                 break;
         }
 
 
-        return mTaskList;
+        return mGenreList;
     }
 
 
@@ -185,7 +185,7 @@ public class DataOperations {
 
     public String[] prepareMusicDurationForJavascript(String taskType) {
 
-        List<Genre> DL = getTaskListFromJSON(taskType);
+        List<Genre> DL = getGenreListFromJSON(taskType);
 
         String[] mScoreStrings = new String[DL.size()];
 
@@ -195,5 +195,32 @@ public class DataOperations {
             }
 
         return mScoreStrings;
+    }
+
+    public String[] prepareAggregatedMusicDurationForJavascript() {
+        List<String> genreList = new ArrayList<>();
+        String[] mDurationStrings = new String[10];
+        genreList.add(StaticMusicType.classical);
+        genreList.add(StaticMusicType.reggae);
+        genreList.add(StaticMusicType.rock);
+        genreList.add(StaticMusicType.metal);
+        genreList.add(StaticMusicType.folk);
+        genreList.add(StaticMusicType.hipHop);
+        genreList.add(StaticMusicType.dance);
+        genreList.add(StaticMusicType.jazz);
+        genreList.add(StaticMusicType.pop);
+        genreList.add(StaticMusicType.punk);
+
+        for(String genre : genreList){
+            List<Genre> DL = getGenreListFromJSON(genre);
+            int duration=0;
+            if (!DL.isEmpty())
+                for (Genre ex : DL) {
+                    duration+=ex.getMusicDuration();
+                }
+            mDurationStrings[DL.indexOf(genre)] = Integer.toString(duration);
+        }
+
+        return mDurationStrings;
     }
 }

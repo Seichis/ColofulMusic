@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.jupiter.on.tetsuo.colofulmusic.scheduler.Scheduler;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstance;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstanceList;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.FeatureGenerator;
@@ -32,6 +33,17 @@ import be.tarsos.dsp.AudioProcessor;
 import be.tarsos.dsp.SilenceDetector;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.mfcc.MFCC;
+import data.structure.Classical;
+import data.structure.Dance;
+import data.structure.Folk;
+import data.structure.Genre;
+import data.structure.HipHop;
+import data.structure.Jazz;
+import data.structure.Metal;
+import data.structure.Pop;
+import data.structure.Punk;
+import data.structure.Rock;
+import data.structure.SoulReggae;
 import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -118,7 +130,7 @@ public class AudioClassificationService extends Service {
         // get the pin number
         String parameterValue = String.valueOf(musicGenre);
         // get the ip address
-        String ipAddress = "192.168.0.104";
+        String ipAddress = "192.168.0.102";
         // get the port number
         String portNumber = "80";
 
@@ -175,14 +187,17 @@ public class AudioClassificationService extends Service {
         private final static String TAG = "TimerThread";
         String prediction, previousPrediction;
         float tempPrediction;
+        int genreDuration;
         // Data collection (Always)
         private Instances instancesForDataCollection;
 
         public MainRunnable() {
             initializeSignalProcessing();
             this.prediction = "";
-            this.previousPrediction="";
+            this.previousPrediction = "";
             this.tempPrediction = 0;
+            this.genreDuration = 0;
+
         }
 
 
@@ -194,6 +209,7 @@ public class AudioClassificationService extends Service {
                     if (isCollecting) {
                         currentTimestamp = System.currentTimeMillis();
                         if (currentTimestamp - startCollectingTimestamp >= 10000) {
+                            genreDuration += 10;
                             if (fileNumber == 2) {
                                 mainRunnable.saveInstancesToArff(mainRunnable.getInstances(), file3);
                                 Instances mInstances = mJ48Wrapper.loadInstancesFromArffFile(file3);
@@ -232,8 +248,11 @@ public class AudioClassificationService extends Service {
                             instancesForDataCollection = null;
                             startCollectingTimestamp = System.currentTimeMillis();
                             if (!prediction.isEmpty()) {
-                                if (!previousPrediction.equals(prediction))
-                                    changeColorToMusic((int) tempPrediction);
+                                if (!previousPrediction.equals(prediction)) {
+                                    saveGenre((int) tempPrediction, genreDuration);
+                                }
+                                 // save to the json file
+                                changeColorToMusic((int) tempPrediction);
                                 previousPrediction = prediction;
                             }
                         }
@@ -275,6 +294,65 @@ public class AudioClassificationService extends Service {
 
             });
         } // End of run()
+
+        //rock,punk,folk,pop,dance,metal,jazz,classical,hiphop,soulReggae
+        private void saveGenre(int prediction, int duration) {
+            if (duration != 0) {
+                switch (prediction) {
+                    case 0:
+                        Genre rock = new Rock();
+                        Scheduler.getInstance().activityStart(rock);
+                        rock.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(rock);
+                    case 1:
+                        Genre punk = new Punk();
+                        Scheduler.getInstance().activityStart(punk);
+                        punk.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(punk);
+                    case 2:
+                        Genre folk = new Folk();
+                        Scheduler.getInstance().activityStart(folk);
+                        folk.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(folk);
+                    case 3:
+                        Genre dance = new Dance();
+                        Scheduler.getInstance().activityStart(dance);
+                        dance.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(dance);
+
+                    case 4:
+                        Genre pop = new Pop();
+                        Scheduler.getInstance().activityStart(pop);
+                        pop.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(pop);
+                    case 5:
+                        Genre metal = new Metal();
+                        Scheduler.getInstance().activityStart(metal);
+                        metal.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(metal);
+                    case 6:
+                        Genre jazz = new Jazz();
+                        Scheduler.getInstance().activityStart(jazz);
+                        jazz.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(jazz);
+                    case 7:
+                        Genre classical = new Classical();
+                        Scheduler.getInstance().activityStart(classical);
+                        classical.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(classical);
+                    case 8:
+                        Genre hiphop = new HipHop();
+                        Scheduler.getInstance().activityStart(hiphop);
+                        hiphop.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(hiphop);
+                    case 9:
+                        Genre reggae = new SoulReggae();
+                        Scheduler.getInstance().activityStart(reggae);
+                        reggae.setMusicDuration(duration);
+                        Scheduler.getInstance().activityStop(reggae);
+                }
+            }
+        }
 
         public Instances getInstances() {
             return instancesForDataCollection;
