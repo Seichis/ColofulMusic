@@ -1,16 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#0B9AE2"
-    >
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="97dp"
-        android:text="History page"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-</RelativeLayout>
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="97dp"
+            android:text="History page"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <com.jupiter.on.tetsuo.colofulmusic.MyWebView
+            android:background="#212121"
+            android:id="@+id/webkit"
+            android:layout_width="fill_parent"
+            android:layout_height="400dp"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/textView1"/>
+
+        <ListView
+            android:id="@+id/genreListView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="5dp"
+            android:divider="#FFCFFC"
+            android:dividerHeight="1dp"
+            android:paddingLeft="2dp"
+            android:layout_below="@id/webkit"/>
+    </RelativeLayout>
+</ScrollView>

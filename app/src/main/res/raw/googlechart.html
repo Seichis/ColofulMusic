@@ -1,0 +1,93 @@
+<html xmlns:margin="http://www.w3.org/1999/xhtml">
+<head>
+    <script type="text/javascript"
+            src="https://www.google.com/jsapi?autoload={
+            'modules':[{
+              'name':'visualization',
+              'version':'1',
+              'packages':['corechart']
+            }]
+          }"></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script type="text/javascript">
+      google.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var score = [];
+        var dates = [];
+        var arrayFromJava = Android.getData(); arrayFromJava = JSON.parse(arrayFromJava);
+        for (var i=0; i<arrayFromJava.length; i++) {
+        	dates.push(i);
+        	score.push(parseInt(arrayFromJava[i]));
+  	    }
+
+		 var data = new google.visualization.DataTable();
+	        data.addColumn('number', 'dates');
+       		data.addColumn('number', 'score');
+
+       	    for(i = 0; i < dates.length; i++){
+                	data.addRow([dates[i], score[i]]);
+        	}
+
+        var options = {
+          legend : { position:"none"},
+          width: '95%',
+          height: '70%',
+          hAxis: {
+               textStyle:{color: '#FFF'},
+               baselineColor:'#FFF'
+          },
+          vAxis: {
+            textStyle:{color: '#FFF'},
+            baselineColor: '#FFF'
+          },
+          series: {
+            0: { color: '#2196f3' }
+          },
+          chartArea: {left:30, top:19, width: '80%', height: '70%'},
+            backgroundColor: '#212121',
+          explorer: {
+            maxZoomOut:2,
+            keepInBounds: true
+            }
+        };
+
+        var chart = new google.visualization.ColumnChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+      function showStats() {
+        var arrayFromJava = Android.getData(); arrayFromJava = JSON.parse(arrayFromJava);
+
+      }
+
+    </script>
+    <script>
+        $(document).ready(function() {
+            var worst = Android.getWorst(); worst = JSON.parse(worst);
+            var best = Android.getBest(); best = JSON.parse(best);
+            $("#best").text( best[0] + " @ "+ best[1] +", "  + best[4] + "/" + best[3] + "/"
+                + best[2] + ", " + best[5] + ":" + best[6]);
+            $("#green").css("color", "#4caf50");
+            $("#worst").text(worst[0] +" @ " + worst[1] + ", " + worst[4] + "/" + worst[3] + "/"
+                + worst[2] + ", " + worst[5] + ":" + worst[6]);
+            $("#red").css("color", "#DD2C00");
+            $("#best").css("color", "#fff");
+            $("#worst").css("color", "#fff");
+    })
+
+    </script>
+    <style>
+        body {
+        background-color: #212121;
+        }
+    </style>
+</head>
+<body>
+
+<div id="curve_chart" ></div>
+<span id="green">Best score: </span><span id="best">oh yeaaah</span>
+<br><br>
+<span id="red">Worst score: </span><span id="worst">kampooom</span>
+</body>
+</html>
