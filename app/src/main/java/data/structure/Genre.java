@@ -12,6 +12,10 @@ public abstract class Genre {
     GregorianCalendar endTimestamp;
 
 
+    public void setMusicDuration(int musicDuration) {
+        this.musicDuration = musicDuration;
+    }
+
     int musicDuration;
 
     public <T extends Genre> T createGenre() {
@@ -23,7 +27,6 @@ public abstract class Genre {
     public <T extends Genre> void concludeGenre() {
         startTimestamp = getStartTimestamp();
         this.endTimestamp = new GregorianCalendar();
-        this.musicDuration = (int) ((endTimestamp.getTimeInMillis() - startTimestamp.getTimeInMillis())/60000);
     }
 
     public GregorianCalendar getStartTimestamp() {

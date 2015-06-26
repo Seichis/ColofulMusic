@@ -5,7 +5,7 @@ package data;
  */
 public class StaticMusicType {
     public static final String rock = "Rock Music";
-    public static final String reggae = "Soul and Reggae Music";
+    public static final String reggae = "Reggae Music";
     public static final String punk = "Punk Music";
     public static final String folk = "Country Music";
     public static final String classical = "Classical Music";
