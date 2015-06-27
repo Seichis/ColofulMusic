@@ -218,9 +218,20 @@ public class DataOperations {
                 for (Genre ex : DL) {
                     duration+=ex.getMusicDuration();
                 }
-            mDurationStrings[DL.indexOf(genre)] = Integer.toString(duration);
+            mDurationStrings[genreList.indexOf(genre)] = Integer.toString(duration);
         }
 
         return mDurationStrings;
+    }
+
+    public String getAggregateMusicGenreData(String genre){
+
+        List<Genre> DL = getGenreListFromJSON(genre);
+        int durationSum=0;
+        if (!DL.isEmpty())
+            for (Genre ex : DL) {
+                durationSum+=ex.getMusicDuration();
+            }
+        return String.valueOf(durationSum);
     }
 }

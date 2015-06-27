@@ -31,7 +31,7 @@ public class MainActivity extends FragmentActivity {
         tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
         pager = (ViewPager) findViewById(R.id.pager);
         adapter = new FragmentAdapter(getSupportFragmentManager());
-        isServiceRunning=false;
+        isServiceRunning=AudioClassificationService.isOn;
         pager.setAdapter(adapter);
 
         final int pageMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources()

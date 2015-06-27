@@ -40,20 +40,9 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pin 11"
-            android:id="@+id/buttonPin11" />
+            android:text="Set IP"
+            android:id="@+id/buttonIP" />
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pin 12"
-            android:id="@+id/buttonPin12" />
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pin 13"
-            android:id="@+id/buttonPin13" />
     </LinearLayout>
 
 </ScrollView>

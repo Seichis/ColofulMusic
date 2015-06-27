@@ -3,6 +3,7 @@ package com.jupiter.on.tetsuo.colofulmusic;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -56,6 +57,7 @@ public class AudioClassificationService extends Service {
     final static String file3 = "test3.txt";
     public static boolean isOn;
     static int fileNumber = 1;
+    private static MainRunnable mainRunnable; // Stores calculated feature to ARFF file, and optionally classifies instances
     int sampleRate = 44100;
     int bufferSize = 2048;
     Timer mTimer;
@@ -69,9 +71,9 @@ public class AudioClassificationService extends Service {
     MFCC mfcc;
     boolean isCollecting;
     J48Wrapper mJ48Wrapper;
+    SharedPreferences prefs;
     // Sliding window
     private SlidingWindow slidingWindow; // For extracting samples by window
-    private MainRunnable mainRunnable; // Stores calculated feature to ARFF file, and optionally classifies instances
 
     //    public AudioClassificationService() {
 //    }
@@ -82,6 +84,7 @@ public class AudioClassificationService extends Service {
         changeSaveFile = false;
         mJ48Wrapper = new J48Wrapper();
         isOn = true;
+        mainRunnable = new MainRunnable();
         startDataCollection();
     }
 
@@ -108,7 +111,6 @@ public class AudioClassificationService extends Service {
         startCollectingTimestamp = System.currentTimeMillis();
         mTimer = new Timer();
         mHandler = new Handler();
-        mainRunnable = new MainRunnable();
         mTimer.scheduleAtFixedRate(mainRunnable, 0, Constants.DURATION_THREAD_SLEEP);
         isCollecting = true;
     }
@@ -126,6 +128,9 @@ public class AudioClassificationService extends Service {
     }
 
     public void changeColorToMusic(int musicGenre) {
+        prefs = MainActivity.getMainActivity().getSharedPreferences(Constants.MY_PREFS_NAME, 0);
+
+        //Restore saved IP if there is one
 
         // get the pin number
         String parameterValue = String.valueOf(musicGenre);
@@ -133,7 +138,11 @@ public class AudioClassificationService extends Service {
         String ipAddress = "192.168.0.102";
         // get the port number
         String portNumber = "80";
-
+        String restoredText = prefs.getString("ip", null);
+        if (restoredText != null) {
+            ipAddress = prefs.getString("ip", "192.168.0.102");//"192.168.0.102" is the default value.
+            portNumber = prefs.getString("portNumber", "80"); // "80" is the default value.
+        }
 
         // execute HTTP request
         if (ipAddress.length() > 0 && portNumber.length() > 0) {
@@ -188,6 +197,7 @@ public class AudioClassificationService extends Service {
         String prediction, previousPrediction;
         float tempPrediction;
         int genreDuration;
+        int intPrediction;
         // Data collection (Always)
         private Instances instancesForDataCollection;
 
@@ -208,8 +218,8 @@ public class AudioClassificationService extends Service {
                 public void run() {
                     if (isCollecting) {
                         currentTimestamp = System.currentTimeMillis();
-                        if (currentTimestamp - startCollectingTimestamp >= 10000) {
-                            genreDuration += 10;
+                        if (currentTimestamp - startCollectingTimestamp >= 60000) {
+                            genreDuration += 1;
                             if (fileNumber == 2) {
                                 mainRunnable.saveInstancesToArff(mainRunnable.getInstances(), file3);
                                 Instances mInstances = mJ48Wrapper.loadInstancesFromArffFile(file3);
@@ -217,7 +227,9 @@ public class AudioClassificationService extends Service {
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
                                     prediction = mJ48Wrapper.predict(mInstances.instance(i));
                                     tempPrediction = Float.parseFloat(prediction);
-                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
+                                    previousPrediction = prediction;
+                                    intPrediction = (int) tempPrediction;
+                                    Log.e(TAG, "Prediction " + intPrediction);
                                 }
 
                                 fileNumber = 3;
@@ -228,7 +240,8 @@ public class AudioClassificationService extends Service {
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
                                     prediction = mJ48Wrapper.predict(mInstances.instance(i));
                                     tempPrediction = Float.parseFloat(prediction);
-                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
+                                    intPrediction = (int) tempPrediction;
+                                    Log.e(TAG, "Prediction " + intPrediction);
 
                                 }
                                 fileNumber = 2;
@@ -239,7 +252,8 @@ public class AudioClassificationService extends Service {
                                 for (int i = 1; i < mInstances.numInstances(); i++) {
                                     prediction = mJ48Wrapper.predict(mInstances.instance(i));
                                     tempPrediction = Float.parseFloat(prediction);
-                                    Log.e(TAG, "Prediction " + (int) tempPrediction);
+                                    intPrediction = (int) tempPrediction;
+                                    Log.e(TAG, "Prediction " + intPrediction);
 
                                 }
                                 fileNumber = 1;
@@ -247,12 +261,10 @@ public class AudioClassificationService extends Service {
 
                             instancesForDataCollection = null;
                             startCollectingTimestamp = System.currentTimeMillis();
-                            if (!prediction.isEmpty()) {
-                                if (!previousPrediction.equals(prediction)) {
-                                    saveGenre((int) tempPrediction, genreDuration);
-                                }
-                                 // save to the json file
-                                changeColorToMusic((int) tempPrediction);
+                            if (!previousPrediction.equals(prediction) || genreDuration>12000) {
+                                saveGenre(intPrediction, genreDuration);// save to the json file
+                                changeColorToMusic(intPrediction);
+                                genreDuration=0;
                                 previousPrediction = prediction;
                             }
                         }
@@ -297,61 +309,72 @@ public class AudioClassificationService extends Service {
 
         //rock,punk,folk,pop,dance,metal,jazz,classical,hiphop,soulReggae
         private void saveGenre(int prediction, int duration) {
-            if (duration != 0) {
-                switch (prediction) {
-                    case 0:
-                        Genre rock = new Rock();
-                        Scheduler.getInstance().activityStart(rock);
-                        rock.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(rock);
-                    case 1:
-                        Genre punk = new Punk();
-                        Scheduler.getInstance().activityStart(punk);
-                        punk.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(punk);
-                    case 2:
-                        Genre folk = new Folk();
-                        Scheduler.getInstance().activityStart(folk);
-                        folk.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(folk);
-                    case 3:
-                        Genre dance = new Dance();
-                        Scheduler.getInstance().activityStart(dance);
-                        dance.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(dance);
+            switch (prediction) {
+                case 0:
+                    Genre rock = new Rock();
+                    Scheduler.getInstance().activityStart(rock);
+                    rock.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(rock);
+                    break;
+                case 1:
+                    Genre punk = new Punk();
+                    Scheduler.getInstance().activityStart(punk);
+                    punk.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(punk);
+                    break;
+                case 2:
+                    Genre folk = new Folk();
+                    Scheduler.getInstance().activityStart(folk);
+                    folk.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(folk);
+                    break;
+                case 3:
+                    Genre dance = new Dance();
+                    Scheduler.getInstance().activityStart(dance);
+                    dance.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(dance);
+                    break;
 
-                    case 4:
-                        Genre pop = new Pop();
-                        Scheduler.getInstance().activityStart(pop);
-                        pop.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(pop);
-                    case 5:
-                        Genre metal = new Metal();
-                        Scheduler.getInstance().activityStart(metal);
-                        metal.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(metal);
-                    case 6:
-                        Genre jazz = new Jazz();
-                        Scheduler.getInstance().activityStart(jazz);
-                        jazz.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(jazz);
-                    case 7:
-                        Genre classical = new Classical();
-                        Scheduler.getInstance().activityStart(classical);
-                        classical.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(classical);
-                    case 8:
-                        Genre hiphop = new HipHop();
-                        Scheduler.getInstance().activityStart(hiphop);
-                        hiphop.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(hiphop);
-                    case 9:
-                        Genre reggae = new SoulReggae();
-                        Scheduler.getInstance().activityStart(reggae);
-                        reggae.setMusicDuration(duration);
-                        Scheduler.getInstance().activityStop(reggae);
-                }
+                case 4:
+                    Genre pop = new Pop();
+                    Scheduler.getInstance().activityStart(pop);
+                    pop.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(pop);
+                    break;
+                case 5:
+                    Genre metal = new Metal();
+                    Scheduler.getInstance().activityStart(metal);
+                    metal.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(metal);
+                    break;
+                case 6:
+                    Genre jazz = new Jazz();
+                    Scheduler.getInstance().activityStart(jazz);
+                    jazz.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(jazz);
+                    break;
+                case 7:
+                    Genre classical = new Classical();
+                    Scheduler.getInstance().activityStart(classical);
+                    classical.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(classical);
+                    break;
+                case 8:
+                    Genre hiphop = new HipHop();
+                    Scheduler.getInstance().activityStart(hiphop);
+                    hiphop.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(hiphop);
+                    break;
+                case 9:
+                    Genre reggae = new SoulReggae();
+                    Scheduler.getInstance().activityStart(reggae);
+                    reggae.setMusicDuration(duration);
+                    Scheduler.getInstance().activityStop(reggae);
+                    break;
+                default:
+                    return;
             }
+
         }
 
         public Instances getInstances() {
@@ -363,31 +386,21 @@ public class AudioClassificationService extends Service {
 
             slidingWindow = new SlidingWindow(Constants.WINDOW_SIZE, Constants.STEP_SIZE);
             dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(sampleRate, bufferSize, 0);
-            mfcc = new MFCC(bufferSize, sampleRate, 12, 30, 133.3334F, (float) sampleRate / 2);
+            mfcc = new MFCC(bufferSize, sampleRate, 12, 40, 133.3334F, (float) sampleRate / 2);
             dispatcher.addAudioProcessor(mfcc);
             dispatcher.addAudioProcessor(new AudioProcessor() {
-//                long startStamp = System.currentTimeMillis();
-//                long currentStamp;
 
                 @Override
                 public void processingFinished() {
-
                 }
 
                 @Override
                 public boolean process(AudioEvent audioEvent) {
-                    //currentStamp = System.currentTimeMillis();
-//                    if (audioEvent.isSilence(-85) && currentStamp - startStamp > 10000) {
-//                        finishDataCollection();
-//                        isCollecting = false;
-//                        MainActivity.getMainActivity().setIsServiceRunning(false);
-//                    } else {
+
                     mfcc.process(audioEvent);
                     Log.i("mfcc", "coefficients" + mfcc.getMFCC()[0] + "center frequencies  ");
                     DataInstance diAudio = new DataInstance(System.currentTimeMillis(), mfcc.getMFCC());
                     slidingWindow.input(diAudio);
-//                    }
-
                     return true;
                 }
             });

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -31,25 +32,32 @@ import java.util.Timer;
 import java.util.logging.Handler;
 
 public class ColorPickFragment extends Fragment{
+   Button setIpButton;
+    SharedPreferences.Editor editor;
+    EditText ipEditText,portEditText;
 
-
-
-    private static ColorPickFragment mColorPickFragment;
-    public static ColorPickFragment getmColorPickFragment() {
-        return mColorPickFragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstance){
-        super.onCreate(savedInstance);
-        mColorPickFragment=this;
-
-    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_pick_color, container, false);
+        setIpButton=(Button)rootView.findViewById(R.id.buttonIP);
+        ipEditText=(EditText)rootView.findViewById(R.id.editTextIPAddress);
+        portEditText=(EditText)rootView.findViewById(R.id.editTextPortNumber);
+        setIpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ipEditText.getText().length() < 7 || portEditText.getText().length()<2) {
+                    Toast.makeText(MainActivity.getMainActivity().getApplicationContext(), "Enter correct IP and port", Toast.LENGTH_LONG).show();
+                } else {
+                    editor = MainActivity.getMainActivity().getSharedPreferences(Constants.MY_PREFS_NAME, 0).edit();
+                    editor.putString("ip", ipEditText.getText().toString());
+                    editor.putString("portNumber",portEditText.getText().toString());
+                    editor.commit();
+                }
+            }
+        });
+
 
         return rootView;
     }

@@ -7,33 +7,35 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="97dp"
-            android:text="History page"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <com.jupiter.on.tetsuo.colofulmusic.MyWebView
-            android:background="#212121"
             android:id="@+id/webkit"
             android:layout_width="fill_parent"
-            android:layout_height="400dp"
+            android:layout_height="200dp"
             android:layout_centerHorizontal="true"
-            android:layout_below="@id/textView1"/>
-
-        <ListView
-            android:id="@+id/genreListView"
+            />
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/webkit"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="23dp"
+            android:layout_marginBottom="23dp"
+            android:text="Choose genre"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textSize="20dp" />
+        <GridView
+            android:id="@+id/gridView1"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginBottom="10dp"
-            android:layout_marginTop="5dp"
-            android:divider="#FFCFFC"
-            android:dividerHeight="1dp"
-            android:paddingLeft="2dp"
-            android:layout_below="@id/webkit"/>
+            android:layout_height="610dp"
+            android:layout_below="@id/textView"
+            android:gravity="center"
+            android:listSelector="#00000000"
+            android:numColumns="3"
+            android:stretchMode="columnWidth"></GridView>
+
+
+
     </RelativeLayout>
 </ScrollView>

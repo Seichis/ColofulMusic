@@ -9,20 +9,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.GridView;
+import android.widget.TextView;
 
 import data.StaticMusicType;
 import data.operations.DataOperations;
 import weka.gui.Main;
 
-public class HistoryFragment extends Fragment {
+public class HistoryFragment extends Fragment{
 
     MyWebView browserAll;
-
+    Button mButton;    GridView gridView;
+    static String item;
+    static final String[] TASKS = new String[] {"Overview",StaticMusicType.dance,StaticMusicType.folk,StaticMusicType.hipHop,StaticMusicType.punk,StaticMusicType.pop,StaticMusicType.classical,StaticMusicType.metal,StaticMusicType.jazz,StaticMusicType.rock,StaticMusicType.reggae };
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // TODO Auto-generated method stub
         View rootView = inflater.inflate(R.layout.fragment_history, container, false);
+        item="";
         browserAll=(MyWebView)rootView.findViewById(R.id.webkit);
 
         browserAll.getSettings().setJavaScriptEnabled(true);
@@ -32,8 +39,24 @@ public class HistoryFragment extends Fragment {
         browserAll.addJavascriptInterface(new WebAppInterface(MainActivity.getMainActivity().getApplicationContext()), "Android");
         browserAll.loadUrl("file:///android_res/raw/googlechart.html");
         //browserAll.applyAfterMoveFix();
+        gridView = (GridView) rootView.findViewById(R.id.gridView1);
+
+        gridView.setAdapter(new ResultsImageAdapters(MainActivity.getMainActivity().getApplicationContext(), TASKS));
+
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+
+                item =  ( ((TextView) v.findViewById(R.id.item_text)).getText()).toString();
+                browserAll.reload();
+            }
+        });
+
+
+
         return rootView;
     }
+
 
     public class WebAppInterface {
         Context mContext;
@@ -46,10 +69,9 @@ public class HistoryFragment extends Fragment {
         public String getData() {
 
 
-            String task = "showall";
-            switch (task) {
-                case "showall":
-                    Log.i("Kotsos",DataOperations.getInstance().javascriptFeedbackToJson(DataOperations.getInstance().prepareAggregatedMusicDurationForJavascript()).toString());
+
+            switch (item) {
+                case "Overview":
                     return DataOperations.getInstance().javascriptFeedbackToJson(DataOperations.getInstance().prepareAggregatedMusicDurationForJavascript());
                 case StaticMusicType.rock:
                     return DataOperations.getInstance().javascriptFeedbackToJson(DataOperations.getInstance().prepareMusicDurationForJavascript(StaticMusicType.rock));

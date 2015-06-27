@@ -5,22 +5,15 @@ public class Constants {
     public final static String[] CLASS_LABELS = {"rock", "pop", "punk", "folk","dance","metal","jazz","classical","hiphop","soulReggae"}; // Should be predefined before collecting data
     public final static String[] ARFF_FILE_NAMES = {"rock.txt", "pop.txt", "punk.txt", "folk.txt","dance.txt","metal.txt","jazz.txt","classical.txt","hiphop.txt","soulReggae.txt"}; // Will be used for model building after merging
     public final static String WORKING_DIR_NAME = "musicRecognition"; // Folder name in SD card
+    public static final String MY_PREFS_NAME = "IP";
 
-
-    public final static int DURATION_THREAD_SLEEP = 250; // ms (Should be smaller than step_size, otherwise bottle neck occurs)
-    public final static int WINDOW_SIZE = 10000; // ms
-    public final static int STEP_SIZE = 5000; // ms
-
-    // File name prefix
-    public final static String PREFIX_RAW_DATA = "1_raw_data_";
-    public final static String PREFIX_FEATURES = "2_features_";
-    public final static String PREFIX_MODEL = "3_model_"; // Not used for this application
-    public final static String PREFIX_RESULT = "4_result_";
+    public final static int DURATION_THREAD_SLEEP = 5000; // ms (Should be smaller than step_size, otherwise bottle neck occurs)
+    public final static int WINDOW_SIZE = 60000; // ms
+    public final static int STEP_SIZE = 30000; // ms
 
 
     // Optional fields
     public final static String HEADER_CLASS_LABEL = "label";
-    public final static String HEADER_UNIXTIME = "unix_time";
 
     // Features (Timbre)
     public final static String HEADER_TIMBRE_1_MEAN = "timbre_1_mean";

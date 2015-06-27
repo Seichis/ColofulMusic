@@ -10,7 +10,7 @@ import com.jupiter.on.tetsuo.colofulmusic.HistorySingleFragment;
 import com.jupiter.on.tetsuo.colofulmusic.HomeFragment;
 
 public class FragmentAdapter extends FragmentPagerAdapter {
-    private final String[] TITLES = {"Home", "History", "Color", "Genre history"};
+    private final String[] TITLES = {"Home", "History", "Settings & info"};
 
     public FragmentAdapter(FragmentManager fm) {
         super(fm);
@@ -31,8 +31,6 @@ public class FragmentAdapter extends FragmentPagerAdapter {
                 return new HistoryFragment();
             case 2:
                 return new ColorPickFragment();
-            case 3:
-                return new HistorySingleFragment();
             default:
                 break;
         }
