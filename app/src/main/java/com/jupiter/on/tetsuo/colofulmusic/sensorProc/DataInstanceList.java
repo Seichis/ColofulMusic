@@ -4,8 +4,6 @@ import android.os.Environment;
 import android.util.Log;
 
 
-import com.jupiter.on.tetsuo.colofulmusic.Constants;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

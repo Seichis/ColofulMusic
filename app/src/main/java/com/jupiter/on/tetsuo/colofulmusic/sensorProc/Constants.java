@@ -1,4 +1,4 @@
-package com.jupiter.on.tetsuo.colofulmusic;
+package com.jupiter.on.tetsuo.colofulmusic.sensorProc;
 
 public class Constants {
     // Parameters

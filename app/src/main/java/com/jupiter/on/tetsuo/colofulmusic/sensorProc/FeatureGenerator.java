@@ -2,8 +2,6 @@ package com.jupiter.on.tetsuo.colofulmusic.sensorProc;
 
 
 
-import com.jupiter.on.tetsuo.colofulmusic.Constants;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;

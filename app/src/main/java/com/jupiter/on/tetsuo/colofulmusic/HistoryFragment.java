@@ -3,20 +3,19 @@ package com.jupiter.on.tetsuo.colofulmusic;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.jupiter.on.tetsuo.colofulmusic.sensorProc.ResultsImageAdapters;
+
 import data.StaticMusicType;
 import data.operations.DataOperations;
-import weka.gui.Main;
 
 public class HistoryFragment extends Fragment{
 

@@ -11,9 +11,11 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.jupiter.on.tetsuo.colofulmusic.scheduler.Scheduler;
+import com.jupiter.on.tetsuo.colofulmusic.sensorProc.Constants;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstance;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.DataInstanceList;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.FeatureGenerator;
+import com.jupiter.on.tetsuo.colofulmusic.sensorProc.J48Wrapper;
 import com.jupiter.on.tetsuo.colofulmusic.sensorProc.SlidingWindow;
 
 import java.io.BufferedInputStream;

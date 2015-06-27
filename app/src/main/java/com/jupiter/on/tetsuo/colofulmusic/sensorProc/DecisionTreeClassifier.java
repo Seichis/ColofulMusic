@@ -1,4 +1,4 @@
-package com.jupiter.on.tetsuo.colofulmusic;
+package com.jupiter.on.tetsuo.colofulmusic.sensorProc;
 
 /**
  * Created by User1 on 20/6/2015.

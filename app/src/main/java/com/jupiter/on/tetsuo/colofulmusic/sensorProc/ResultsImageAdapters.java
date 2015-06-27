@@ -1,4 +1,4 @@
-package com.jupiter.on.tetsuo.colofulmusic;
+package com.jupiter.on.tetsuo.colofulmusic.sensorProc;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import com.jupiter.on.tetsuo.colofulmusic.R;
 
 import data.StaticMusicType;
 import data.operations.DataOperations;
