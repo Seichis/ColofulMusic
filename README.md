@@ -29,4 +29,4 @@ the Google Graphs API is employed on an Android webview
 view in the HistoryFragment.class, to provide the graphical
 visualizations. 
 
-A more scientific view of this project's purposesis discussed in the report at this link : https://drive.google.com/file/d/0B4xOZ3AckVcxbW5zMJXS0thZmc/view?usp=sharing
+A more scientific view of this project's purposesis discussed in the report at this link : https://drive.google.com/open?id=0B4xOZ3AckVcxOFFtbHVBcmRzcGc
